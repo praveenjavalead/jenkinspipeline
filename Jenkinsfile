@@ -1,40 +1,42 @@
 pipeline {
     agent any
     
-    stages {
-        stage ('Build') {
-            steps {
-                sh "mvn clean package"
-            }
-            post {
-                success{  
-                    echo "Now Archive!!"
-                    archiveArtifacts artifacts: "**/target/*.war"
-                }    
-            }
-        }
-        stage ('Deploy to Staging') {
-            steps {
-                build job: "deploy-to-staging"
-            }
-        }
-        stage ('Deploy to Production') {
-            steps {
-                timeout(time:5, unit:'DAYS') {
-                    input message: 'Approve Production Deployment?'
-                }
+    parameters { 
+         string(name: 'aws_tomcat_dev', defaultValue: '18.217.172.142', description: 'Staging Server')
+         string(name: 'aws_tomcat_prod', defaultValue: '18.217.192.115', description: 'Production Server')
+    } 
 
-                build job: 'deploy-to-prod'
+    triggers {
+         pollSCM('* * * * *') 
+    }
+
+    stages{
+        stage('Build'){
+            steps {
+                sh 'mvn clean package'
             }
             post {
                 success {
-                    echo 'Code Deployed to Production!'
-                }
-
-                failure {
-                    echo 'Failed to deploye the code to Prod!'
+                    echo 'Now Archiving...'
+                    archiveArtifacts artifacts: '**/target/*.war'
                 }
             }
         }
-    }    
+
+        stage ('Deployments'){
+            parallel{
+                stage ('Deploy to Staging'){
+                    steps {
+                        sh "scp -i /home/jenkins/tomcat-demo.pem **/target/*.war ec2-user@${params.aws_tomcat_dev}:/var/lib/tomcat7/webapps"
+                    }
+                }
+
+                stage ("Deploy to Production"){
+                    steps {
+                        sh "scp -i /home/devtools/aws/tomcat-demo.pem **/target/*.war ec2-user@${params.aws_tomcat_prod}:/var/lib/tomcat7/webapps"
+                    }
+                }
+            }
+        }
+    }
 }
