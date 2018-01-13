@@ -27,13 +27,13 @@ pipeline {
             parallel{
                 stage ('Deploy to Staging'){
                     steps {
-                        sh "scp -i /devtools/aws/tomcat-demo-key-pair/tomcat-demo.pem **/target/*.war ec2-user@${params.aws_tomcat_dev}:/var/lib/tomcat7/webapps"
+                        sh "scp -i C:/devtools/aws/tomcat-demo-key-pair/tomcat-demo.pem **/target/*.war ec2-user@${params.aws_tomcat_dev}:/var/lib/tomcat7/webapps"
                     }
                 }
 
                 stage ("Deploy to Production"){
                     steps {
-                        sh "scp -i /devtools/aws/tomcat-demo-key-pair/tomcat-demo.pem **/target/*.war ec2-user@${params.aws_tomcat_prod}:/var/lib/tomcat7/webapps"
+                        sh "scp -i C:/devtools/aws/tomcat-demo-key-pair/tomcat-demo.pem **/target/*.war ec2-user@${params.aws_tomcat_prod}:/var/lib/tomcat7/webapps"
                     }
                 }
             }
