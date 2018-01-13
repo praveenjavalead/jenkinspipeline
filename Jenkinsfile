@@ -26,13 +26,14 @@ pipeline {
 
                 build job: 'deploy-to-prod'
             }
-        }
-        stage {
-            success {
-                echo 'Code deployed to Production.'
-            }
-            failure {
-                echo 'Deployment failed.'
+            post {
+                success {
+                    echo 'Code Deployed to Production!'
+                }
+
+                failure {
+                    echo 'Failed to deploye the code to Prod!'
+                }
             }
         }
     }    
